@@ -101,7 +101,7 @@ def main():
         data = pd.read_csv(uploaded_file)
         first_column = data.columns[0]  # Get the name of the first column
         df = pd.DataFrame(columns=['keyword', 'Ideal Refresh Cadence', 'Minimum Refresh Cadence'])
-        progress_text = "Operation in progress. Please wait."
+        progress_text = st.empty()
         my_bar = st.progress(0)
         for i, keyword in enumerate(data[first_column]): 
             print(keyword) 
@@ -112,7 +112,7 @@ def main():
 
             percent_complete = (i + 1) / len(data[first_column])  # Calculate the percentage of keywords processed
             my_bar.progress(percent_complete)  # Update the progress bar
-            progress_text.text(f"Operation in progress: {int(percent_complete * 100)}% done")  # Update the progress text
+            st.write(f"Operation in progress: {int(percent_complete * 100)}% done")
 
         st.write(df)  # Move this line out of the loop
         progress_text.text('Operation complete.')
