@@ -99,7 +99,8 @@ def main():
         df = pd.DataFrame(columns=['keyword', 'Ideal Refresh Cadence', 'Minimum Refresh Cadence'])
         progress_text = "Operation in progress. Please wait."
         my_bar = st.progress(0)
-        for i, keyword in enumerate(data[first_column]):  
+        for i, keyword in enumerate(data[first_column]): 
+            print(keyword) 
             result_list = getSERPInfo(keyword, exclude_domains)  
             for result in result_list:
                 df = df.append(result, ignore_index=True)
