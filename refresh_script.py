@@ -8,7 +8,7 @@ import time
 
 
 api_key = st.secrets["dataforseoapikey"]["api_key"]
-print(api_key)
+
 
 
 # Function to extract timestamps from JSON data
@@ -105,7 +105,7 @@ def main():
             print(keyword) 
             result_list = getSERPInfo(keyword, exclude_domains) 
             print(result_list) 
-            pd.concat([df] + result_list, ignore_index=True)
+            df = df.append(result_list, ignore_index=True)
            
 
             percent_complete = (i + 1) / len(data[first_column])  # Calculate the percentage of keywords processed
