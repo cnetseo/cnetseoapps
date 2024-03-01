@@ -10,21 +10,23 @@ api_key = st.secrets["dataforseoapikey"]["api_key"]
 
 # Function to extract timestamps from JSON data
 
-def extract_timestamps(items,exclude_domain):
+def extract_timestamps(items, exclude_domains):
     timestamps = []
-    count = 0  # Initialize a counter
+    count = 0  
     for item in items:
-        # Check if the item is not from the excluded domain
-        if item.get('type') == 'organic' and item.get('timestamp') is not None and item.get('domain') != exclude_domain:
+        if item.get('type') == 'organic' and item.get('timestamp') is not None and item.get('domain') not in exclude_domains:  # Change here
             timestamps.append(datetime.strptime(item.get('timestamp').replace(" ", ""), '%Y-%m-%d%H:%M:%S%z'))
-            count += 1  # Increment the counter
-            if count == 10:  # If we've extracted 10 timestamps
-                break  # Break the loop
+            count += 1  
+            if count == 10:  
+                break  
     return timestamps
 
 
 
 def categorize_dates(dates):
+    if len(dates) < 3:  # Check if there are less than 3 dates
+        return "NA", "NA"  # Return "NA" for both ideal and minimum refresh cadence
+
     now = datetime.now(timezone.utc)  # Use timezone-aware datetime for current date
     differences = sorted([(now - date).days for date in dates])  # Sort differences in ascending order
 
@@ -32,9 +34,7 @@ def categorize_dates(dates):
     smallest_differences = differences[:5]
 
     average_smallest_difference = sum(smallest_differences) / len(smallest_differences)
-    print(average_smallest_difference)
     average_difference = sum(differences) / len(differences)
-    print(average_difference)
 
     def categorize(average):
         if average < 4.5:
@@ -88,16 +88,17 @@ def main():
     st.title('RV Refresh Script')
     st.write('Please upload a CSV file with a list of singular keywords in the first column. This script will process the keywords and generate an output CSV file.')
 
-    exclude_domain = st.text_input('Enter the domain to exclude', '')  # Add an input for the exclude domain
+    exclude_domains = st.text_input('Enter the domains to exclude, separated by commas', '')  
+    exclude_domains = [domain.strip() for domain in exclude_domains.split(',')]  # Split the input into a list of domains
 
+    # rest of the code...
     uploaded_file = st.file_uploader("Choose a CSV file", type="csv")
     if uploaded_file is not None:
         data = pd.read_csv(uploaded_file)
         first_column = data.columns[0]  # Get the name of the first column
         df = pd.DataFrame(columns=['keyword', 'Ideal Refresh Cadence', 'Minimum Refresh Cadence'])
-        for keyword in data[first_column]:  # Use the first column name here
-            # Assuming getSERPInfo is a function that takes two arguments: keyword and exclude_domain
-            result_list = getSERPInfo(keyword, exclude_domain)
+        for keyword in data[first_column]:  
+            result_list = getSERPInfo(keyword, exclude_domains)  # Change here
             df = df.append(result_list, ignore_index=True)
 
         st.write(df)
