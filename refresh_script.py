@@ -4,6 +4,7 @@ import json
 from datetime import datetime, timezone
 import requests, zipfile, io
 import base64
+import time
 
 
 api_key = st.secrets["dataforseoapikey"]["api_key"]
@@ -97,11 +98,16 @@ def main():
         data = pd.read_csv(uploaded_file)
         first_column = data.columns[0]  # Get the name of the first column
         df = pd.DataFrame(columns=['keyword', 'Ideal Refresh Cadence', 'Minimum Refresh Cadence'])
-        for keyword in data[first_column]:  
-            result_list = getSERPInfo(keyword, exclude_domains)  # Change here
-            df = df.append(result_list, ignore_index=True)
-
-        st.write(df)
+        progress_text = "Operation in progress. Please wait."
+        my_bar = st.progress(0, text=progress_text)
+        for keyword in data[first_column]:
+                result_list = getSERPInfo(keyword, exclude_domains)  # Change here
+                df = df.append(result_list, ignore_index=True)
+                st.write(df)
+                for percent_complete in data[first_column]:  
+                    my_bar.progress(percent_complete + 1, text=progress_text)
+        
+        my_bar.empty()
 
         # Prepare CSV data for download
         csv = df.to_csv(index=False)
