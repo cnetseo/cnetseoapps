@@ -5,9 +5,12 @@ from datetime import datetime, timezone
 import requests, zipfile, io
 import base64
 import time
+import dotenv
+import os
 
 
-api_key = st.secrets["dataforseoapikey"]["api_key"]
+#api_key = st.secrets["dataforseoapikey"]["api_key"]
+api_key = os.getenv("dataforseoapikey")
 
 # Function to extract timestamps from JSON data
 
@@ -101,9 +104,9 @@ def main():
         my_bar = st.progress(0)
         for i, keyword in enumerate(data[first_column]): 
             print(keyword) 
-            result_list = getSERPInfo(keyword, exclude_domains)  
-            for result in result_list:
-                df = df.append(result, ignore_index=True)
+            result_list = getSERPInfo(keyword, exclude_domains) 
+            print(result_list) 
+            df = df.append(result_list, ignore_index=True)
            
 
             percent_complete = (i + 1) / len(data[first_column])  # Calculate the percentage of keywords processed
