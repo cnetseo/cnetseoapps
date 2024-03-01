@@ -101,7 +101,9 @@ def main():
         my_bar = st.progress(0)
         for i, keyword in enumerate(data[first_column]):  
             result_list = getSERPInfo(keyword, exclude_domains)  
-            df = df.append(result_list, ignore_index=True)
+            for result in result_list:
+                df = df.append(result, ignore_index=True)
+           
 
             percent_complete = (i + 1) / len(data[first_column])  # Calculate the percentage of keywords processed
             my_bar.progress(percent_complete)  # Update the progress bar
