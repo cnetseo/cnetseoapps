@@ -16,9 +16,9 @@ jsonschema-specifications==2023.12.1
 markdown-it-py==3.0.0
 MarkupSafe==2.1.5
 mdurl==0.1.2
-numpy==1.26.4
+numpy
 packaging==23.2
-pandas==2.2.1
+pandas
 pillow==10.2.0
 protobuf==4.25.3
 pyarrow==15.0.0
