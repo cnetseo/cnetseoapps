@@ -57,7 +57,6 @@ def categorize_dates(dates):
 
     return categorize(average_smallest_difference), categorize(average_difference)
 
-# ... (your import statements and function defs stay the same)
 
 def getSERPInfo(keyword,exclude_domain):
     url = "https://api.dataforseo.com/v3/serp/google/organic/live/advanced"
@@ -99,7 +98,7 @@ def main():
         first_column = data.columns[0]  # Get the name of the first column
         df = pd.DataFrame(columns=['keyword', 'Ideal Refresh Cadence', 'Minimum Refresh Cadence'])
         progress_text = "Operation in progress. Please wait."
-        my_bar = st.progress(0, text=progress_text)
+        my_bar = st.progress(0)
         for i, keyword in enumerate(data[first_column]):  
             result_list = getSERPInfo(keyword, exclude_domains)  
             df = df.append(result_list, ignore_index=True)
