@@ -9,9 +9,8 @@ import dotenv
 import os
 
 
-#api_key = st.secrets["dataforseoapikey"]["api_key"]
-api_key = 'Basic Y2Nhc2F6emFAcmVkdmVudHVyZXMuY29tOjMwNGViMWI5MDQ3ZTZjOTc='
-print(api_key)
+api_key = st.secrets["dataforseoapikey"]["api_key"]
+
 
 # Function to extract timestamps from JSON data
 
@@ -120,7 +119,7 @@ def main():
         # Prepare CSV data for download
         csv = df.to_csv(index=False)
         b64 = base64.b64encode(csv.encode()).decode()  # Some bytes handling
-        href = f'<a href="data:file/csv;base64,{b64}" download="output.csv">Download CSV File</a>'
+        href = f'<a href="data:file/csv;base64,{b64}" download="refresh_cadence.csv">Download CSV File</a>'
         st.markdown(href, unsafe_allow_html=True)  # Provide download link
 
 if __name__ == "__main__":
