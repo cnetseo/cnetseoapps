@@ -11,6 +11,7 @@ import os
 
 #api_key = st.secrets["dataforseoapikey"]["api_key"]
 api_key = os.getenv("dataforseoapikey")
+print(api_key)
 
 # Function to extract timestamps from JSON data
 
