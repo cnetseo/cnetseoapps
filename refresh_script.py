@@ -5,8 +5,6 @@ from datetime import datetime, timezone
 import requests, zipfile, io
 import base64
 import time
-import dotenv
-import os
 
 
 api_key = st.secrets["dataforseoapikey"]["api_key"]
