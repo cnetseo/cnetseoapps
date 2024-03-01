@@ -100,14 +100,16 @@ def main():
         df = pd.DataFrame(columns=['keyword', 'Ideal Refresh Cadence', 'Minimum Refresh Cadence'])
         progress_text = "Operation in progress. Please wait."
         my_bar = st.progress(0, text=progress_text)
-        for keyword in data[first_column]:
-                result_list = getSERPInfo(keyword, exclude_domains)  # Change here
-                df = df.append(result_list, ignore_index=True)
-                st.write(df)
-                for percent_complete in data[first_column]:  
-                    my_bar.progress(percent_complete + 1, text=progress_text)
-        
-        my_bar.empty()
+        for i, keyword in enumerate(data[first_column]):  
+            result_list = getSERPInfo(keyword, exclude_domains)  
+            df = df.append(result_list, ignore_index=True)
+
+            percent_complete = (i + 1) / len(data[first_column])  # Calculate the percentage of keywords processed
+            my_bar.progress(percent_complete)  # Update the progress bar
+            progress_text.text(f"Operation in progress: {int(percent_complete * 100)}% done")  # Update the progress text
+
+        st.write(df)  # Move this line out of the loop
+        progress_text.text('Operation complete.')
 
         # Prepare CSV data for download
         csv = df.to_csv(index=False)
