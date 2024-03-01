@@ -112,7 +112,7 @@ def main():
 
             percent_complete = (i + 1) / len(data[first_column])  # Calculate the percentage of keywords processed
             my_bar.progress(percent_complete)  # Update the progress bar
-            st.write(f"Operation in progress: {int(percent_complete * 100)}% done")
+            
 
         st.write(df)  # Move this line out of the loop
         progress_text.text('Operation complete.')
