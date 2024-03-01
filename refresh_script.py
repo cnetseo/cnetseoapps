@@ -6,7 +6,7 @@ import requests, zipfile, io
 import base64
 
 exclude_domain = "www.cnet.com"
-api_key = st.secrets("dataforseoapikey")
+api_key = st.secrets["dataforseoapikey"]["api_key"]
 
 # Function to extract timestamps from JSON data
 
