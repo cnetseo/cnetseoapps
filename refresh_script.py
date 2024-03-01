@@ -105,7 +105,7 @@ def main():
             print(keyword) 
             result_list = getSERPInfo(keyword, exclude_domains) 
             print(result_list) 
-            df = df.append(result_list, ignore_index=True)
+            pd.concat([df] + result_list, ignore_index=True)
            
 
             percent_complete = (i + 1) / len(data[first_column])  # Calculate the percentage of keywords processed
