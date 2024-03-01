@@ -5,12 +5,12 @@ from datetime import datetime, timezone
 import requests, zipfile, io
 import base64
 
-exclude_domain = "www.cnet.com"
+
 api_key = st.secrets["dataforseoapikey"]["api_key"]
 
 # Function to extract timestamps from JSON data
 
-def extract_timestamps(items):
+def extract_timestamps(items,exclude_domain):
     timestamps = []
     count = 0  # Initialize a counter
     for item in items:
@@ -58,7 +58,7 @@ def categorize_dates(dates):
 
 # ... (your import statements and function defs stay the same)
 
-def getSERPInfo(keyword):
+def getSERPInfo(keyword,exclude_domain):
     url = "https://api.dataforseo.com/v3/serp/google/organic/live/advanced"
     headers = {
         'Authorization': api_key,
@@ -72,7 +72,7 @@ def getSERPInfo(keyword):
     if response_data["status_code"] == 20000:
         for result in response_data["tasks"][0]["result"]:
             print(result['items'])
-            timestamps = extract_timestamps(result['items'])
+            timestamps = extract_timestamps(result['items'],exclude_domain)
             smallest_cat, avg_cat = categorize_dates(timestamps)
             csv_data = {
                 'keyword': keyword,
@@ -85,18 +85,23 @@ def getSERPInfo(keyword):
     return data_list
 
 def main():
-    st.title('Upload CSV')
+    st.title('RV Refresh Script')
+    st.write('Please upload a CSV file with a list of singular keywords in the first column. This script will process the keywords and generate an output CSV file.')
+
+    exclude_domain = st.text_input('Enter the domain to exclude', '')  # Add an input for the exclude domain
+
     uploaded_file = st.file_uploader("Choose a CSV file", type="csv")
     if uploaded_file is not None:
         data = pd.read_csv(uploaded_file)
         first_column = data.columns[0]  # Get the name of the first column
         df = pd.DataFrame(columns=['keyword', 'Ideal Refresh Cadence', 'Minimum Refresh Cadence'])
         for keyword in data[first_column]:  # Use the first column name here
-            result_list = getSERPInfo(keyword)
+            # Assuming getSERPInfo is a function that takes two arguments: keyword and exclude_domain
+            result_list = getSERPInfo(keyword, exclude_domain)
             df = df.append(result_list, ignore_index=True)
 
         st.write(df)
-        
+
         # Prepare CSV data for download
         csv = df.to_csv(index=False)
         b64 = base64.b64encode(csv.encode()).decode()  # Some bytes handling
