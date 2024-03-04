@@ -31,6 +31,7 @@ requests
 rich
 rpds-py
 scikit-learn
+sklearn
 six
 smmap
 streamlit
