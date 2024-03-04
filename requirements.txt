@@ -30,6 +30,7 @@ referencing
 requests
 rich
 rpds-py
+scikit-learn
 six
 smmap
 streamlit
