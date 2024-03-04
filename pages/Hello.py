@@ -8,7 +8,7 @@ def main():
 
     st.write("# Welcome to Streamlit! 👋")
 
-    st.sidebar.success("Select a demo above.")
+    st.sidebar.success("Choose between the following apps.")
 
     st.markdown(
         """
