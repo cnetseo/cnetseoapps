@@ -1,8 +1,7 @@
 import streamlit as st
 import pandas as pd
 import numpy as np
-from scikit-learn import NearestNeighbors
-
+from sklearn.neighbors import NearestNeighbors
 
 # Select the columns to use for comparison
 columns = ['Total Clicks', 'Average Position', 'Click Through Rate (CTR)']
