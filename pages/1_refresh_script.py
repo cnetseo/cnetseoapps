@@ -87,7 +87,7 @@ def getSERPInfo(keyword,exclude_domain):
     return data_list
 
 def main():
-    st.set_page_config(page_title="Plotting Demo", page_icon="📈")
+    st.set_page_config(page_title="Refresh Script", page_icon="📈")
     st.markdown("Refresh Script")
     st.sidebar.header("Refresh Script")
     st.title('RV Refresh Script')
