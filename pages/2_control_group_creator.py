@@ -38,8 +38,11 @@ def main():
     st.markdown("Control Group Creator")
     st.sidebar.header("Control Group Creator")
     st.title('RV Control Group Script')
-    st.write('Please upload a CSV file with a list of singular keywords in the first column. This script will process the keywords and generate an output CSV file.')
-
+    st.markdown("""
+    Please upload a .csv file exported from the [Test Page Selector](https://rvmandt.cloud.looker.com/dashboards/3221). 
+    Make sure it has the following headers: Content URL, Content ID, Total Clicks, 
+    Average Position, and Click Through Rate (CTR).
+    """)
     file = st.file_uploader("Upload CSV", type=['csv'])
 
     if file is not None:
