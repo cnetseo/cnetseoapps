@@ -24,9 +24,9 @@ os.environ["LANGCHAIN_TRACING_V2"]="true"
 #os.environ["LANGCHAIN_API_KEY"]= st.secrets['general']["LANGCHAIN_API_KEY"]
 os.environ["LANGCHAIN_ENDPOINT"]="https://api.smith.langchain.com"
 os.environ["LANGCHAIN_PROJECT"]="Reddit_Sentiment_Test"
-apikey = st.secrets['general']["SERPAPIKEY"]
-reddit_client_id=st.secrets['general']["reddit_client_id"]
-reddit_client_secret=st.secrets['general']["reddit_client_secret"]
+apikey = st.secrets['serpapi']["SERPAPIKEY"]
+reddit_client_id=st.secrets['reddit']["reddit_client_id"]
+reddit_client_secret=st.secrets['reddit']["reddit_client_secret"]
 
 client = Client()
 
