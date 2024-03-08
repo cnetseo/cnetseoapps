@@ -14,6 +14,7 @@ DateTime==5.4
 frozenlist==1.4.1
 gitdb==4.0.11
 GitPython==3.1.42
+google-search-results==2.4.2
 idna==3.6
 importlib-metadata==7.0.1
 Jinja2==3.1.3

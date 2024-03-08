@@ -28,7 +28,7 @@ apikey = st.secrets['serpapi']["SERPAPIKEY"]
 reddit_client_id=st.secrets['reddit']["reddit_client_id"]
 reddit_client_secret=st.secrets['reddit']["reddit_client_secret"]
 
-client = Client()
+#client = Client()
 
 from serpapi import GoogleSearch
 import re
