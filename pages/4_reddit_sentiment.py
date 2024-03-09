@@ -55,10 +55,10 @@ reddit = praw.Reddit(
    client_secret=reddit_client_secret,
    user_agent="User-Agent: android:com.example.myredditapp:v1.2.3 (by /u/ccasazza)"
 )
-
-st.title('Reddit Sentiment Analysis')
 st.set_page_config(page_title="Reddit Sentiment Beta", page_icon="📈")
 st.sidebar.header("Reddit Sentiment Beta")
+st.title('Reddit Sentiment Analysis')
+
 search_term = st.text_input('Enter the search term')
 search_term = search_term + " reddit"
 num_urls = st.number_input('Enter the number of reddit threads to explore', min_value=1, max_value=10, value=3)
