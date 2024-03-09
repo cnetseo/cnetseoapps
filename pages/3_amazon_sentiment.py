@@ -94,7 +94,7 @@ def get_amazon_reviews(amazon_url, product_name):
 
         prompt_summary = [
             {"role": "system", "content": f"You are an AI assistant for helping write product reviews for a review website. You will be given context on the product in the form of user reviews from amazon to help formulate the review. Summarize the sentiment around {product_name}"},
-            {"role": "assistant", "content": {joined_review_texts}},
+            {"role": "assistant", "content": joined_review_texts},
             {"role": "user", "content": f"Base your review on the provided context. Format your response like this: {product_name} Overall Sentiment: \n What People Love\n What People Don't Like\n What People are Saying:"},
         ]
 
