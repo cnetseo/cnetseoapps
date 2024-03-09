@@ -7,6 +7,7 @@ from langchain.chains.openai_functions.base import (
     create_structured_output_runnable,
 )
 from langchain_openai import ChatOpenAI
+from langchain import chat_models
 from langchain.prompts import ChatPromptTemplate
 from langsmith import Client
 import csv
@@ -81,7 +82,7 @@ json_schema = {
     "required": ["sentiment", "reasoning","comment_type"],
 }
 
-llm = ChatOpenAI(model="gpt-4", temperature=0)
+llm = chat_models(ChatOpenAI(model="gpt-4", temperature=0))
 prompt = ChatPromptTemplate.from_messages(
     [
         (
