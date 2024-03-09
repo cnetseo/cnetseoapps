@@ -6,7 +6,7 @@ from langchain.chains.openai_functions.base import (
     create_openai_fn_runnable,
     create_structured_output_runnable,
 )
-from langchain.chat_models import ChatOpenAI
+from langchain_openai import ChatOpenAI
 from langchain.prompts import ChatPromptTemplate
 from langsmith import Client
 import csv
