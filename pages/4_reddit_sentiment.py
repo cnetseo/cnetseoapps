@@ -7,9 +7,7 @@ from langchain.chains.openai_functions.base import (
     create_structured_output_runnable,
 )
 from langchain_openai import ChatOpenAI
-from langchain import chat_models
 from langchain.prompts import ChatPromptTemplate
-from langsmith import Client
 import csv
 import streamlit as st
 import pandas as pd
@@ -18,6 +16,8 @@ from langchain.chains.combine_documents.stuff import StuffDocumentsChain
 from langchain.chains.llm import LLMChain
 from langchain.prompts import PromptTemplate
 from langchain.text_splitter import RecursiveCharacterTextSplitter
+
+
 
 
 os.environ['OPENAI_API_KEY'] = st.secrets['openai']["openai_api_key"]
@@ -82,7 +82,7 @@ json_schema = {
     "required": ["sentiment", "reasoning","comment_type"],
 }
 
-llm = chat_models(ChatOpenAI(model="gpt-4", temperature=0))
+llm = ChatOpenAI(model="gpt-4", temperature=0)
 prompt = ChatPromptTemplate.from_messages(
     [
         (
