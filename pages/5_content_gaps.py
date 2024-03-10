@@ -190,9 +190,10 @@ def main():
     st.title('Content Gaps Analysis')
     user_url = st.text_input("Enter URL", "")
     keyword = st.text_input("Enter Keyword", "")
-    results = getContent(keyword,user_url)
-    content_gaps = content_gaps_module(results,keyword,headers)
-    st.text_area(content_gaps)
+    if user_url and keyword:  # Ensure both user_url and keyword are entered
+        results = getContent(keyword,user_url)
+        content_gaps = content_gaps_module(results,keyword,headers)
+        st.text_area(content_gaps)
 
 if __name__ == "__main__":
     main()
