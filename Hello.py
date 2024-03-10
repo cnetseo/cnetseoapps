@@ -14,6 +14,14 @@ def main():
         """
         This streamlit is a repository of data analytics and AI scripts developed by SEOs at RV. Choose from the following apps. 
 
+        Refresh Script App: Upload keywords and output refresh cadences based on competitor's freshness signals 
+
+        Control Group Creator: Create correlative control groups for SEO page group testing 
+
+        Amazon Sentiment Script: Determine sentiment of products on Amazon 
+
+        Reddit Sentiment Script: Determine sentiment of products on reddit
+
         Maintained by @ccasazza
         
     """
