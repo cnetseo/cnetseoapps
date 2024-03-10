@@ -98,6 +98,7 @@ def get_content_dict(response_urls):
 
     return content_dict
 
+st.cache_data(ttl=3600)
 def content_gaps_module(response_urls,keyword, headers):
     content_dict = get_content_dict(response_urls)
     length = len(content_dict)
