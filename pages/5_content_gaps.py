@@ -197,7 +197,7 @@ def main():
     st.title('Content Gaps Analysis')
     user_url = st.text_input("Enter URL", "")
     keyword = st.text_input("Enter Keyword", "")
-    if user_url and keyword:  # Ensure both user_url and keyword are entered
+    if st.button('Find Content Gaps'):  # Ensure both user_url and keyword are entered
         results = getContent(keyword,user_url)
         content_gaps = content_gaps_module(results,keyword,headers)
         for i, text in enumerate(content_gaps):
