@@ -18,10 +18,6 @@ token = st.secrets['screenshot']["screenshot_api_key"]
 output = "json"
 file_type = "jpeg"
 
-headers = {
-  "Content-Type": "application/json",
-  "Authorization": f"Bearer {openai_api_key}"
-}
 
 def run_google_search(keyword):
     try:
@@ -144,6 +140,11 @@ def content_gaps_module(response_urls,keyword, headers):
             ],
             "max_tokens": 3000
         }
+
+        headers = {
+            "Content-Type": "application/json",
+            "Authorization": f"Bearer {openai_api_key}"
+            }
         print(f"processing {domain}")
         airesponse = requests.post("https://api.openai.com/v1/chat/completions", headers=headers, json=payload)
         
@@ -168,6 +169,8 @@ def content_gaps_module(response_urls,keyword, headers):
     This is the output schema example. Structure the summarized output into this json schema: 
     {format_instructions}
     """
+
+    os.environ["OPENAI_API_KEY"] = st.secrets['openai']["openai_api_key"]
     
     class ContentGap(BaseModel):
         content_gap_name: str = Field(description="name of content gap between page i.e Content Gap 1, Content Gap 2")
