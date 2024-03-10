@@ -112,7 +112,7 @@ def content_gaps_module(response_urls,keyword, headers):
 
     for domain, url_content in items_list[1:]:
         payload = {
-            "model": "gpt-3.5-turbo-16k",
+            "model": "gpt-4",
             "messages": [
                 {
                     "role": "user",
