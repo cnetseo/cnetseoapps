@@ -156,9 +156,10 @@ def content_gaps_module(response_urls,keyword, headers):
         else:
             print(f"Failed to get response for URL, Status Code: {airesponse.status_code}")
 
-    print(content_response)
+    
 
     consolidated_content_gaps = "\n".join(content_response)
+    print(consolidated_content_gaps)
 
     prompt_template = """You are being given a series of content gap observations comparing {first_domain} to several other pages. First summarize each of the findings, lumping any similar ones into a common theme. Second, give a name to each content gap. 
     Third, output the content gaps in the schema example shown below:
@@ -194,6 +195,8 @@ def content_gaps_module(response_urls,keyword, headers):
 
 def main():
     st.set_page_config(page_title="Content Gaps Analysis", page_icon="📈")
+    st.sidebar("Experimental")
+
     st.title('Content Gaps Analysis')
     user_url = st.text_input("Enter URL", "")
     keyword = st.text_input("Enter Keyword", "")
