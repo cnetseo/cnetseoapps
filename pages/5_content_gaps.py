@@ -202,7 +202,7 @@ def main():
         content_gaps = content_gaps_module(results,keyword,headers)
         selected_gap = st.selectbox('Choose a content gap to view:', options=range(1, len(content_gaps)+1))
         # Display selected content gap
-        st.markdown(output[selected_gap - 1])
+        st.text_area(content_gaps[selected_gap - 1])
 
 if __name__ == "__main__":
     main()
