@@ -200,9 +200,9 @@ def main():
     if user_url and keyword:  # Ensure both user_url and keyword are entered
         results = getContent(keyword,user_url)
         content_gaps = content_gaps_module(results,keyword,headers)
-        selected_gap = st.selectbox('Choose a content gap to view:', options=range(1, len(content_gaps)+1))
-        # Display selected content gap
-        st.text_area(content_gaps[selected_gap - 1])
+        for i, text in enumerate(content_gaps):
+            st.write(f'Content Gap {i+1}:')
+            st.write(text)
 
 if __name__ == "__main__":
     main()
