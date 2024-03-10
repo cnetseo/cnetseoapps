@@ -182,7 +182,10 @@ def content_gaps_module(response_urls,keyword, headers):
 
     llm = ChatOpenAI(temperature=0, model_name="gpt-4")
 
-    stuff_chain = PromptTemplate(pattern=prompt_template) | LLMChain(llm=llm) | SimpleJsonOutputParser(pydantic_model=ContentGap)
+    #stuff_chain = PromptTemplate(pattern=prompt_template) | LLMChain(llm=llm) | SimpleJsonOutputParser(pydantic_model=ContentGap)
+
+    stuff_chain = prompt | llm | parser
+    
 
     result = stuff_chain.invoke({"first_domain":first_domain,"text": consolidated_content_gaps})
     print(result)
