@@ -195,7 +195,7 @@ def content_gaps_module(response_urls,keyword, headers):
 
 def main():
     st.set_page_config(page_title="Content Gaps Analysis", page_icon="📈")
-    st.sidebar("Experimental")
+    st.sidebar.header("Experimental")
 
     st.title('Content Gaps Analysis')
     user_url = st.text_input("Enter URL", "")
