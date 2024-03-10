@@ -185,7 +185,7 @@ def content_gaps_module(response_urls,keyword, headers):
     #stuff_chain = PromptTemplate(pattern=prompt_template) | LLMChain(llm=llm) | SimpleJsonOutputParser(pydantic_model=ContentGap)
 
     stuff_chain = prompt | llm | parser
-    
+
 
     result = stuff_chain.invoke({"first_domain":first_domain,"text": consolidated_content_gaps})
     print(result)
@@ -199,7 +199,9 @@ def main():
     if user_url and keyword:  # Ensure both user_url and keyword are entered
         results = getContent(keyword,user_url)
         content_gaps = content_gaps_module(results,keyword,headers)
-        st.text_area(content_gaps)
+        selected_gap = st.selectbox('Choose a content gap to view:', options=range(1, len(content_gaps)+1))
+        # Display selected content gap
+        st.markdown(output[selected_gap - 1])
 
 if __name__ == "__main__":
     main()
