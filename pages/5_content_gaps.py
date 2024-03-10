@@ -126,7 +126,7 @@ def content_gaps_module(response_urls,keyword, headers):
                                     (Describe content gap 2)
 
                                     Rules to follow: 
-                                    - Content gaps are defined as key information, facts or concepts that are present                                     in page 2 but absent in page 1
+                                    - Content gaps are defined as key information, facts or concepts that are present in page 2 but absent in page 1
                                     - The main topic of the page is related to  {keyword} so use that to guide what you consider a content gap.
                                     - Use the domain names instead of "page 1" or "page 2" for example 
                                 """
@@ -152,7 +152,7 @@ def content_gaps_module(response_urls,keyword, headers):
             # Append the content of the response to the list
             content_response.append(airesponse.json()['choices'][0]['message']['content'])
         else:
-            print(f"Failed to get response for URL: {url}, Status Code: {airesponse.status_code}")
+            print(f"Failed to get response for URL, Status Code: {airesponse.status_code}")
 
     print(content_response)
 
