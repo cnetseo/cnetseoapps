@@ -116,7 +116,7 @@ def get_amazon_reviews(amazon_url, product_name):
         data = response.json()
     # Extract answers from response
         answers = data["choices"][0]["message"]["content"]
-        return scores, average_sentiment, json.dumps({"reviews": answers})
+        return scores, average_sentiment,  answers
 
 
 def main():
