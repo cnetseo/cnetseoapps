@@ -61,7 +61,7 @@ def getContent(keyword,user_url):
         keyword = keyword
         query = "https://shot.screenshotapi.net/screenshot"
         query += "?token=%s&url=%s&full_page=true&extract_text=true&output=%s&file_type=%s&wait_for_event=load" % (token, url, output, file_type)
-        print(query)
+        #print(query)
         response = requests.get(query, stream=True)
 
         if response.status_code == 200:
@@ -148,7 +148,7 @@ def content_gaps_module(response_urls,keyword, headers):
 
         print(f"processing {domain}")
         airesponse = requests.post("https://api.openai.com/v1/chat/completions", headers=headers, json=payload)
-        
+        print(airesponse)
         # Check if the request was successful
         if airesponse.status_code == 200:
             # Append the content of the response to the list
