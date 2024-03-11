@@ -112,6 +112,8 @@ prompt_stuffchain = PromptTemplate(input_variables=["text","product"],template=p
 llm = ChatOpenAI(temperature=0, model_name="gpt-4-1106-preview")
 llm_chain = LLMChain(llm=llm, prompt=prompt_stuffchain)
 # Define StuffDocumentsChain
+
+st.cache_data(ttl=3600)
 stuff_chain = StuffDocumentsChain(llm_chain=llm_chain, document_variable_name="text")
 
 # Search term for Google
