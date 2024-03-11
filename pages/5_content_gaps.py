@@ -202,6 +202,7 @@ def main():
     if st.button('Find Content Gaps'):  # Ensure both user_url and keyword are entered
         results = getContent(keyword,user_url)
         content_gaps = content_gaps_module(results,keyword,headers)
+        print(content_gaps)
         for i, text in enumerate(content_gaps):
             st.write(f'Content Gap {i+1}:')
             st.write(text)
