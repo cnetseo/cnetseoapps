@@ -61,7 +61,7 @@ def getContent(keyword,user_url):
         keyword = keyword
         query = "https://shot.screenshotapi.net/screenshot"
         query += "?token=%s&url=%s&full_page=true&extract_text=true&output=%s&file_type=%s&wait_for_event=load" % (token, url, output, file_type)
-
+        print(query)
         response = requests.get(query, stream=True)
 
         if response.status_code == 200:
