@@ -50,6 +50,7 @@ prompt = ChatPromptTemplate.from_messages(
 
 llm = ChatOpenAI(model="gpt-4", temperature=0)
 
+st.cache_data(ttl=3600)
 def get_amazon_reviews(amazon_url, product_name):
         try:
             # Get reviews from Unwrangle API
