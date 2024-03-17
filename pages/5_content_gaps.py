@@ -181,6 +181,7 @@ def content_gaps_module(urls,keyword, headers):
     first_domain, first_url_content = items_list[0]
 
     for domain, url_content in items_list[1:]:
+        print(url_content)
         payload = {
             "model": "gpt-4-0125-preview",
             "messages": [
