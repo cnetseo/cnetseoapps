@@ -24,12 +24,12 @@ openai_api_key = st.secrets['openai']['openai_api_key']
 token = st.secrets['screenshot']['screenshot_api_key']
 LANGCHAIN_TRACING_V2=True
 LANGCHAIN_ENDPOINT="https://api.smith.langchain.com"
-LANGCHAIN_API_KEY=st.secrets['langsmith']['langsmithapi']
+LANGCHAIN_API_KEY= st.secrets['langsmith']['langsmithapi']
 LANGCHAIN_PROJECT="content_gaps"
 output = "json"
 file_type = "jpeg"
 
-client = Client()
+#client = Client()
 
 headers = {
             "Content-Type": "application/json",
