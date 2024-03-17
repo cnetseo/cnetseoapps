@@ -11,19 +11,35 @@ from langchain_openai import ChatOpenAI
 from langchain.text_splitter import RecursiveCharacterTextSplitter
 from langchain.output_parsers.json import SimpleJsonOutputParser
 from langchain_core.pydantic_v1 import BaseModel, Field
+from langchain.chains.combine_documents.stuff import StuffDocumentsChain
+from langchain.chains.llm import LLMChain
+from langchain.prompts import PromptTemplate
+from langchain.chains.summarize import load_summarize_chain
+from langchain_community.document_loaders import WebBaseLoader
+from langchain_openai import ChatOpenAI
+from langsmith import Client
 
 serpapikey =  st.secrets['serpapi']["SERPAPIKEY"]
 openai_api_key = st.secrets['openai']["openai_api_key"]
 token = st.secrets['screenshot']["screenshot_api_key"]
+LANGCHAIN_TRACING_V2=True
+LANGCHAIN_ENDPOINT="https://api.smith.langchain.com"
+LANGCHAIN_API_KEY=st.secrets['langsmith']['langsmithapi']
+LANGCHAIN_PROJECT="content_gaps"
 output = "json"
 file_type = "jpeg"
+
+client = Client()
 
 headers = {
             "Content-Type": "application/json",
             "Authorization": f"Bearer {openai_api_key}"
             }
 
-def run_google_search(keyword):
+def run_google_search(keyword,user_url):
+    response_urls = []
+    
+
     try:
         if serpapikey is None:
             raise ValueError("API Key (serpapikey) is missing")
@@ -44,6 +60,8 @@ def run_google_search(keyword):
 
         if not urls:
             raise ValueError("No URLs found excluding reddit.com and youtube.com")
+        
+        urls.insert(0, user_url)
 
         return urls
 
@@ -98,9 +116,48 @@ def get_content_dict(response_urls):
 
     return content_dict
 
+def summarize_page(urls):
+
+    llm = ChatOpenAI(temperature=0)
+    content_dict = {}
+    url_domain_names = []
+
+    prompt_template = """Write a concise summary of the following:
+    "{text}"
+    CONCISE SUMMARY:"""
+    prompt = PromptTemplate.from_template(prompt_template)
+
+    # Define LLM chain
+    llm = ChatOpenAI(temperature=0, model_name="gpt-3.5-turbo-16k")
+    llm_chain = LLMChain(llm=llm, prompt=prompt)
+
+     # Define StuffDocumentsChain
+    stuff_chain = StuffDocumentsChain(llm_chain=llm_chain, document_variable_name="text")
+
+    for url in urls:
+        loader = WebBaseLoader(url)
+        docs = loader.load()
+
+        parsed_url = urlparse(url)
+        # Extract the path
+        path = parsed_url.path
+        # Split the path
+        split_path = path.split('_')
+        # Extract and reformat the domain
+        domain = '.'.join(split_path[0:3])
+        url_domain_names.append(domain)
+
+        docs = loader.load()
+        summary = stuff_chain.run(docs)
+        content_dict[domain] = summary
+    
+    return content_dict
+
+
+
 st.cache_data(ttl=3600)
-def content_gaps_module(response_urls,keyword, headers):
-    content_dict = get_content_dict(response_urls)
+def content_gaps_module(urls,keyword, headers):
+    content_dict = get_content_dict(urls)
     length = len(content_dict)
     print(f"This dictionary has {length} entries")
 
@@ -200,7 +257,7 @@ def main():
     user_url = st.text_input("Enter URL", "")
     keyword = st.text_input("Enter Keyword", "")
     if st.button('Find Content Gaps'):  # Ensure both user_url and keyword are entered
-        results = getContent(keyword,user_url)
+        results = run_google_search(keyword,user_url)
         content_gaps = content_gaps_module(results,keyword,headers)
         print(content_gaps)
         for i, text in enumerate(content_gaps):
