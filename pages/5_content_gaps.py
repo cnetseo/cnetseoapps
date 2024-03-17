@@ -61,6 +61,7 @@ def run_google_search(keyword,user_url):
             raise ValueError("No URLs found excluding reddit.com and youtube.com")
         
         urls.insert(0, user_url)
+        print(f"Printing the urls to be analyze: {urls}")
 
         return urls
 
@@ -134,6 +135,7 @@ def summarize_page(urls):
     stuff_chain = StuffDocumentsChain(llm_chain=llm_chain, document_variable_name="text")
 
     for url in urls:
+        print("Scraping {url}")
         loader = WebBaseLoader(url)
         docs = loader.load()
 
@@ -148,6 +150,7 @@ def summarize_page(urls):
 
         docs = loader.load()
         summary = stuff_chain.run(docs)
+        print("Printing summary for {domain} : {summary}")
         content_dict[domain] = summary
     
     return content_dict
