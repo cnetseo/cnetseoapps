@@ -17,6 +17,7 @@ from langchain.prompts import PromptTemplate
 from langchain.chains.summarize import load_summarize_chain
 from langchain_community.document_loaders import WebBaseLoader
 from langchain_openai import ChatOpenAI
+from langsmith.run_trees import RunTree
 from langsmith import Client
 
 serpapikey =  st.secrets['serpapi']['SERPAPIKEY']
@@ -159,7 +160,7 @@ def summarize_page(urls):
 
 st.cache_data(ttl=3600)
 def content_gaps_module(urls,keyword, headers):
-    content_dict = get_content_dict(urls)
+    content_dict = summarize_page(urls)
     length = len(content_dict)
     print(f"This dictionary has {length} entries")
 
