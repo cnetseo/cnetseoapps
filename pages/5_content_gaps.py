@@ -158,8 +158,8 @@ def summarize_page(urls):
         url_domain_names.append(domain)
 
         docs = loader.load()
-        #summary = stuff_chain.run(docs)
-        summary = stuff_chain.invoke({"input_documents": docs})
+        summary = stuff_chain.run(docs)
+        #summary = stuff_chain.invoke({"input_documents": docs})
 
         print("Printing summary for {domain} : {summary}")
         content_dict[domain] = summary
