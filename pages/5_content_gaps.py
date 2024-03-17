@@ -139,9 +139,9 @@ def summarize_page(urls):
     llm_chain = LLMChain(llm=llm, prompt=obj)
 
      # Define StuffDocumentsChain
-    #stuff_chain = StuffDocumentsChain(llm_chain=llm_chain, document_variable_name=["text","keyword"])
+    stuff_chain = StuffDocumentsChain(llm_chain=llm_chain, document_variable_name=["text"])
 
-    stuff_chain = prompt | llm 
+    #stuff_chain = prompt | llm 
    
     for url in urls:
         print("Scraping {url}")
