@@ -118,7 +118,7 @@ def get_content_dict(response_urls):
 
     return content_dict
 
-def summarize_page(urls):
+def summarize_page(urls,keyword):
 
     llm = ChatOpenAI(temperature=0)
     content_dict = {}
@@ -130,15 +130,19 @@ def summarize_page(urls):
     prompt_template = """Write a concise summary of the following:
     "{text}"
     CONCISE SUMMARY:"""
-    prompt = PromptTemplate.from_template(prompt_template)
+    #prompt = PromptTemplate.from_template(prompt_template)
+    prompt = PromptTemplate(template = obj,input_variables=["keyword","text"])
+
 
     # Define LLM chain
     llm = ChatOpenAI(temperature=0, model_name="gpt-4-turbo-preview")
     llm_chain = LLMChain(llm=llm, prompt=obj)
 
      # Define StuffDocumentsChain
-    stuff_chain = StuffDocumentsChain(llm_chain=llm_chain, document_variable_name="text")
+    #stuff_chain = StuffDocumentsChain(llm_chain=llm_chain, document_variable_name=["text","keyword"])
 
+    stuff_chain = prompt | llm 
+   
     for url in urls:
         print("Scraping {url}")
         loader = WebBaseLoader(url)
@@ -154,7 +158,9 @@ def summarize_page(urls):
         url_domain_names.append(domain)
 
         docs = loader.load()
-        summary = stuff_chain.run(docs)
+        #summary = stuff_chain.run(docs)
+        summary = stuff_chain.invoke({"keyword":keyword,"text": docs})
+
         print("Printing summary for {domain} : {summary}")
         content_dict[domain] = summary
     
@@ -164,7 +170,7 @@ def summarize_page(urls):
 
 st.cache_data(ttl=3600)
 def content_gaps_module(urls,keyword, headers):
-    content_dict = summarize_page(urls)
+    content_dict = summarize_page(urls,keyword)
     length = len(content_dict)
     print(f"This dictionary has {length} entries")
 
