@@ -118,7 +118,7 @@ def get_content_dict(response_urls):
 
     return content_dict
 
-def summarize_page(urls,keyword):
+def summarize_page(urls):
 
     llm = ChatOpenAI(temperature=0)
     content_dict = {}
@@ -127,9 +127,9 @@ def summarize_page(urls,keyword):
     from langchain import hub
     obj = hub.pull("casazza/article_summary")
 
-    prompt_template = """Write a concise summary of the following:
-    "{text}"
-    CONCISE SUMMARY:"""
+    #prompt_template = """Write a concise summary of the following:
+    #"{text}"
+    #CONCISE SUMMARY:"""
     #prompt = PromptTemplate.from_template(prompt_template)
     prompt = PromptTemplate(template = obj,input_variables=["keyword","text"])
 
@@ -159,7 +159,7 @@ def summarize_page(urls,keyword):
 
         docs = loader.load()
         #summary = stuff_chain.run(docs)
-        summary = stuff_chain.invoke({"keyword":keyword,"text": docs})
+        summary = stuff_chain.invoke({"text": docs})
 
         print("Printing summary for {domain} : {summary}")
         content_dict[domain] = summary
@@ -170,7 +170,7 @@ def summarize_page(urls,keyword):
 
 st.cache_data(ttl=3600)
 def content_gaps_module(urls,keyword, headers):
-    content_dict = summarize_page(urls,keyword)
+    content_dict = summarize_page(urls)
     length = len(content_dict)
     print(f"This dictionary has {length} entries")
 
