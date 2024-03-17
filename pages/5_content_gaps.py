@@ -19,9 +19,9 @@ from langchain_community.document_loaders import WebBaseLoader
 from langchain_openai import ChatOpenAI
 from langsmith import Client
 
-serpapikey =  st.secrets['serpapi']["SERPAPIKEY"]
-openai_api_key = st.secrets['openai']["openai_api_key"]
-token = st.secrets['screenshot']["screenshot_api_key"]
+serpapikey =  st.secrets['serpapi']['SERPAPIKEY']
+openai_api_key = st.secrets['openai']['openai_api_key']
+token = st.secrets['screenshot']['screenshot_api_key']
 LANGCHAIN_TRACING_V2=True
 LANGCHAIN_ENDPOINT="https://api.smith.langchain.com"
 LANGCHAIN_API_KEY=st.secrets['langsmith']['langsmithapi']
@@ -39,7 +39,6 @@ headers = {
 def run_google_search(keyword,user_url):
     response_urls = []
     
-
     try:
         if serpapikey is None:
             raise ValueError("API Key (serpapikey) is missing")
