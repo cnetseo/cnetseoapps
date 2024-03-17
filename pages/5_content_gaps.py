@@ -23,6 +23,7 @@ from langsmith import Client
 serpapikey =  st.secrets['serpapi']['SERPAPIKEY']
 openai_api_key = st.secrets['openai']['openai_api_key']
 token = st.secrets['screenshot']['screenshot_api_key']
+os.environ["OPENAI_API_KEY"] = st.secrets['openai']["openai_api_key"]
 LANGCHAIN_TRACING_V2=True
 LANGCHAIN_ENDPOINT="https://api.smith.langchain.com"
 LANGCHAIN_API_KEY= st.secrets['langsmith']['langsmithapi']
@@ -232,7 +233,7 @@ def content_gaps_module(urls,keyword, headers):
     {format_instructions}
     """
 
-    os.environ["OPENAI_API_KEY"] = st.secrets['openai']["openai_api_key"]
+    
     
     class ContentGap(BaseModel):
         content_gap_name: str = Field(description="name of content gap between page i.e Content Gap 1, Content Gap 2")
