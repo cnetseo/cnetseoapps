@@ -139,7 +139,7 @@ def summarize_page(urls):
     llm_chain = LLMChain(llm=llm, prompt=obj)
 
      # Define StuffDocumentsChain
-    stuff_chain = StuffDocumentsChain(llm_chain=llm_chain, document_variable_name=["text"])
+    stuff_chain = StuffDocumentsChain(llm_chain=llm_chain, document_variable_name="text")
 
     #stuff_chain = prompt | llm 
    
