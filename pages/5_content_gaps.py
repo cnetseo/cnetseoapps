@@ -130,8 +130,8 @@ def summarize_page(urls):
     #prompt_template = """Write a concise summary of the following:
     #"{text}"
     #CONCISE SUMMARY:"""
-    #prompt = PromptTemplate.from_template(prompt_template)
-    prompt = PromptTemplate(template = obj,input_variables=["text"])
+    prompt = PromptTemplate.from_template(obj)
+    #prompt = PromptTemplate(template = obj,input_variables=["text"])
 
 
     # Define LLM chain
