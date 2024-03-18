@@ -243,7 +243,7 @@ def content_gaps_module(urls,keyword, headers):
     class ContentGap(BaseModel):
         content_gap_name: str = Field(description="name of content gap between page i.e Content Gap 1, Content Gap 2")
         content_gap_description: str = Field(description="description of content gap between pages")
-        content_gap_example: str = Field(description="Examples of content gaps found")
+        #content_gap_example: str = Field(description="Examples of content gaps found")
 
     parser = SimpleJsonOutputParser(pydantic_object=ContentGap)
     
