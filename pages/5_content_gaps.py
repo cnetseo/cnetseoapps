@@ -148,20 +148,14 @@ def summarize_page(urls):
         loader = WebBaseLoader(url)
         docs = loader.load()
 
-        parsed_url = urlparse(url)
-        # Extract the path
-        path = parsed_url.path
-        # Split the path
-        split_path = path.split('_')
-        # Extract and reformat the domain
-        domain = '.'.join(split_path[0:3])
+        domain = urlparse(url).netloc
         url_domain_names.append(domain)
 
         docs = loader.load()
         summary = stuff_chain.run(docs)
         #summary = stuff_chain.invoke({"input_documents": docs})
 
-        print("Printing summary for {domain} : {summary}")
+        print(f"Printing summary for {domain} : {summary}")
         content_dict[domain] = summary
     
     return content_dict
@@ -201,7 +195,7 @@ def content_gaps_module(urls,keyword, headers):
                                     - Content gaps are defined as key information, facts or concepts that are present in page 2 but absent in page 1
                                     - The main topic of the page is related to  {keyword} so use that to guide what you consider a content gap.
                                     - Use the domain names instead of "page 1" or "page 2" for example 
-                                    -Provide examples for each content gap you identify
+                                    
                                 """
                         },
                         {
