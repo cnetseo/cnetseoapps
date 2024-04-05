@@ -6,6 +6,7 @@ import time
 
 serpapikey =  st.secrets['serpapi']["SERPAPIKEY"]
 
+
 def next_month(month):
     months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
     return months[(months.index(month) + 1) % 12]
@@ -31,33 +32,40 @@ def fetch_google_trends_data(keywords, lookback_period):
             interest_data = json_response['interest_over_time']['timeline_data']
             print(interest_data)
             row_data = {"Keyword": keyword}
-            #print(row_data)
 
             for data_point in interest_data:
                 date_format = '%Y-%m'
+                date_str = data_point['date'].replace('\u2009', ' ')
+
                 # Extract value based on the lookback period
                 if lookback_period == 'today 3-m':
                     value = data_point['values'][0]['extracted_value']
                     date = pd.to_datetime(data_point['date'])
                     month_year = date.strftime(date_format)
                     date_list = [month_year]
-
                 elif lookback_period == 'today 12-m':
                     value = data_point['values'][0]['extracted_value']
-                    #print(value)
-                    
-                    # For 'today 12-m', we have a date range. We'll split the value between the two months.
-                    date_str = data_point['date'].replace('\u2009', ' ')
-                    start_date_str, end_date_str = date_str.split(' – ')
-                    print(f"this is the {start_date_str} and the {end_date_str}")
-                    start_month, start_day = start_date_str.split()
-                    end_day, end_year = end_date_str.split(', ')
-                    start_date = pd.to_datetime(f'{start_month} {start_day}, {end_year.strip()}')
-                    end_date = pd.to_datetime(f'{start_month if int(end_day) > int(start_day) else next_month(start_month)} {end_day}, {end_year.strip()}')
-                    
-                    date_list = list(pd.date_range(start_date, end_date, freq='M').strftime(date_format))
-                    if end_date.strftime(date_format) not in date_list:
-                        date_list.append(end_date.strftime(date_format))
+
+                    if ' – ' in date_str:
+                        start_date_str, end_date_str = date_str.split(' – ')
+                        print(f"this is the {start_date_str} and the {end_date_str}")
+
+                        start_month, start_day = start_date_str.split()
+
+                        # Check if the end_date_str contains a month name
+                        if end_date_str.split()[0].isalpha():
+                            end_month, end_day, end_year = end_date_str.split()
+                        else:
+                            end_month = start_month
+                            end_day, end_year = end_date_str.split()
+
+                        start_date = pd.to_datetime(f'{start_month} {start_day}, {end_year.strip()}')
+                        end_date = pd.to_datetime(f'{end_month} {end_day}, {end_year.strip()}')
+
+                        date_list = list(pd.date_range(start_date, end_date, freq='M').strftime(date_format))
+                        if end_date.strftime(date_format) not in date_list:
+                            date_list.append(end_date.strftime(date_format))
+
                 else:
                     value = data_point['value']
                     date = pd.to_datetime(data_point['date'])
@@ -83,7 +91,7 @@ def fetch_google_trends_data(keywords, lookback_period):
 
         except Exception as e:
             print(f"Error processing keyword: {keyword} - Exception: {str(e)}")
-    print(headers,data)
+
     return headers, data
 
 import base64
