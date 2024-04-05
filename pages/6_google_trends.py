@@ -30,7 +30,7 @@ def fetch_google_trends_data(keywords, lookback_period):
             response = requests.get(url, params=params)
             json_response = response.json()
             interest_data = json_response['interest_over_time']['timeline_data']
-            print(interest_data)
+            #print(interest_data)
             row_data = {"Keyword": keyword}
 
             for data_point in interest_data:
@@ -48,6 +48,7 @@ def fetch_google_trends_data(keywords, lookback_period):
 
                     if ' – ' in date_str:
                         start_date_str, end_date_str = date_str.split(' – ')
+                        print(start_date_str,end_date_str)
                         if start_date_str.split()[0] != end_date_str.split()[0]:
                             continue
                         print(f"this is the {start_date_str} and the {end_date_str}")
