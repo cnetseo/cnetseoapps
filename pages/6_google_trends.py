@@ -11,6 +11,10 @@ def next_month(month):
     months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
     return months[(months.index(month) + 1) % 12]
 
+def next_month(month):
+    months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
+    return months[(months.index(month) + 1) % 12]
+
 def fetch_google_trends_data(keywords, lookback_period):
     url = 'https://serpapi.com/search.json?'
     headers = []
@@ -47,8 +51,14 @@ def fetch_google_trends_data(keywords, lookback_period):
                     value = data_point['values'][0]['extracted_value']
 
                     if ' – ' in date_str:
-                        start_date_str, end_date_str = date_str.split(' – ')
-                        print(f"this is the {start_date_str} and the {end_date_str}")
+                        date_parts = date_str.split(' – ')
+                        start_date_str = date_parts[0]
+
+                        # Check if the end_date_str contains a month name
+                        if date_parts[1].split()[0].isalpha():
+                            end_date_str = ' '.join(date_parts[1:])
+                        else:
+                            end_date_str = ' '.join(date_parts[1:])
 
                         start_month, start_day = start_date_str.split()
 
