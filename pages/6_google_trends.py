@@ -48,7 +48,7 @@ def fetch_google_trends_data(keywords, lookback_period):
 
                     if ' – ' in date_str:
                         start_date_str, end_date_str = date_str.split(' – ')
-                        print(start_date_str,end_date_str)
+                        print(f"this is the {start_date_str} and the {end_date_str}")
                         if start_date_str.split()[0] != end_date_str.split()[0]:
                             continue
                         print(f"this is the {start_date_str} and the {end_date_str}")
