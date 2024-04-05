@@ -41,7 +41,10 @@ def fetch_google_trends_data(keywords, lookback_period):
                 elif lookback_period == 'today 12-m':
                     value = data_point['values'][0]['extracted_value']
                     # For 'today 12-m', we have a date range. We'll split the value between the two months.
-                    start_date, end_date = [pd.to_datetime(d) for d in data_point['date'].split('–')]
+                    start_date_str, end_date_str = data_point['date'].split('–')
+                    year = end_date_str.split(',')[1].strip()  # extract year from end date
+                    start_date = pd.to_datetime(start_date_str + ', ' + year)  # append year to start date
+                    end_date = pd.to_datetime(end_date_str)
                     date_list = list(pd.date_range(start_date, end_date, freq='M').strftime(date_format))
                     if end_date.strftime(date_format) not in date_list:
                         date_list.append(end_date.strftime(date_format))
