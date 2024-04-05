@@ -30,18 +30,35 @@ def fetch_google_trends_data(keywords, lookback_period):
             row_data = {"Keyword": keyword}
 
             for data_point in interest_data:
-                date = pd.to_datetime(data_point['date'])
-                month_year = date.strftime('%Y-%m')
-                value = data_point['value']
+                date_format = '%Y-%m'
+                # Extract value based on the lookback period
+                if lookback_period == 'today 3-m':
+                    value = data_point['values'][0]['extracted_value']
+                    date = pd.to_datetime(data_point['date'])
+                    month_year = date.strftime(date_format)
+                    date_list = [month_year]
+                elif lookback_period == 'today 12-m':
+                    value = data_point['values'][0]['extracted_value']
+                    # For 'today 12-m', we have a date range. We'll split the value between the two months.
+                    start_date, end_date = [pd.to_datetime(d) for d in data_point['date'].split('–')]
+                    date_list = list(pd.date_range(start_date, end_date, freq='M').strftime(date_format))
+                    if end_date.strftime(date_format) not in date_list:
+                        date_list.append(end_date.strftime(date_format))
+                else:
+                    value = data_point['value']
+                    date = pd.to_datetime(data_point['date'])
+                    month_year = date.strftime(date_format)
+                    date_list = [month_year]
 
-                if month_year not in row_data.keys():
-                    row_data[month_year] = { 'sum': 0, 'count': 0 }
+                for month_year in date_list:
+                    if month_year not in row_data.keys():
+                        row_data[month_year] = { 'sum': 0, 'count': 0 }
 
-                row_data[month_year]['sum'] += value
-                row_data[month_year]['count'] += 1
+                    row_data[month_year]['sum'] += value/len(date_list)
+                    row_data[month_year]['count'] += 1
 
-                if month_year not in headers:
-                    headers.append(month_year)
+                    if month_year not in headers:
+                        headers.append(month_year)
 
             for month_year in row_data.keys():
                 if month_year != "Keyword":
@@ -59,14 +76,24 @@ def main():
     # Streamlit app
     st.title("Google Trends Data Fetcher")
 
-    uploaded_file = st.file_uploader("Upload CSV", type=['csv'])
+    option = st.radio("Choose how to input keywords", ("Upload CSV", "Enter manually"))
+    keywords = []
 
-    if uploaded_file:
-        df = pd.read_csv(uploaded_file)
+    if option == "Upload CSV":
+        uploaded_file = st.file_uploader("Upload CSV", type=['csv'])
+
+        if uploaded_file:
+            df = pd.read_csv(uploaded_file)
+            keywords = df.iloc[:, 0].tolist()
+    else:
+        keywords_input = st.text_input("Enter keywords separated by commas")
+        if keywords_input:
+            keywords = [keyword.strip() for keyword in keywords_input.split(",")]
+
+    if keywords:
         lookback_period = st.selectbox("Select lookback period", ("now 7-d","today 3-m", "today 12-m"), index=0)
 
         if st.button("Fetch Google Trends Data"):
-            keywords = df.iloc[:, 0].tolist()
             headers, data = fetch_google_trends_data(keywords, lookback_period)
 
             headers.sort()
