@@ -31,6 +31,7 @@ def fetch_google_trends_data(keywords, lookback_period):
             interest_data = json_response['interest_over_time']['timeline_data']
             #print(interest_data)
             row_data = {"Keyword": keyword}
+            print(row_data)
 
             for data_point in interest_data:
                 date_format = '%Y-%m'
@@ -40,6 +41,7 @@ def fetch_google_trends_data(keywords, lookback_period):
                     date = pd.to_datetime(data_point['date'])
                     month_year = date.strftime(date_format)
                     date_list = [month_year]
+                    
                 elif lookback_period == 'today 12-m':
                     value = data_point['values'][0]['extracted_value']
                     #print(value)
