@@ -29,7 +29,7 @@ def fetch_google_trends_data(keywords, lookback_period):
             response = requests.get(url, params=params)
             json_response = response.json()
             interest_data = json_response['interest_over_time']['timeline_data']
-            #print(interest_data)
+            print(interest_data)
             row_data = {"Keyword": keyword}
             #print(row_data)
 
