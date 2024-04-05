@@ -4,16 +4,13 @@ import requests
 import json
 import time
 
-
 serpapikey =  st.secrets['serpapi']["SERPAPIKEY"]
-
-
 
 def next_month(month):
     months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
     return months[(months.index(month) + 1) % 12]
 
-def fetch_google_trends_data(keywords, lookback_period, serpapikey):
+def fetch_google_trends_data(keywords, lookback_period):
     url = 'https://serpapi.com/search.json?'
     headers = []
     data = []
