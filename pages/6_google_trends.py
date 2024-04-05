@@ -27,6 +27,7 @@ def fetch_google_trends_data(keywords, lookback_period):
             response = requests.get(url, params=params)
             json_response = response.json()
             interest_data = json_response['interest_over_time']['timeline_data']
+            print(interest_data)
             row_data = {"Keyword": keyword}
 
             for data_point in interest_data:
@@ -72,6 +73,8 @@ def fetch_google_trends_data(keywords, lookback_period):
 
     return headers, data
 
+import base64
+
 def main():
     # Streamlit app
     st.title("Google Trends Data Fetcher")
@@ -101,7 +104,17 @@ def main():
             df = df.set_index("Keyword")
             df = df[headers]
 
+            # Add a final column that averages all the row values
+            df['Average'] = df.mean(axis=1)
+
             st.dataframe(df)
+
+            # Convert dataframe to CSV and allow user to download
+            csv = df.to_csv(index=True)
+            b64 = base64.b64encode(csv.encode()).decode()  # some strings <-> bytes conversions necessary here
+            href = f'<a href="data:file/csv;base64,{b64}" download="output.csv">Download CSV File</a>'
+            st.markdown(href, unsafe_allow_html=True)
+
 
 if __name__ == "__main__":
     main()
