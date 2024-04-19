@@ -8,10 +8,10 @@ from langchain_community.agent_toolkits.sql.toolkit import SQLDatabaseToolkit
 from sqlalchemy import create_engine
 from langchain_community.agent_toolkits import create_sql_agent
 from langchain_openai import ChatOpenAI
-
-openai_api_key = st.secrets["openai"]["openai_api_key"]
+os.environ['OPENAI_API_KEY'] = st.secrets['openai']["openai_api_key"]
 
 def analyzeOutput(df, request):
+    
     # Create engine for an in-memory SQLite database
     engine = create_engine('sqlite:///:memory:')
     df.to_sql("keywords", engine, index=False)
