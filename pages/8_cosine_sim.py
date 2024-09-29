@@ -7,6 +7,9 @@ import nltk
 from nltk.tokenize import sent_tokenize
 from wayback import get_wayback_content, parse_date
 import time
+import requests
+from bs4 import BeautifulSoup
+from datetime import datetime
 
 # Download NLTK data
 @st.cache_resource
@@ -25,6 +28,29 @@ def get_embedding(text, model="text-embedding-3-small"):
     text = text.replace("\n", " ")
     client = get_openai_client()
     return client.embeddings.create(input=[text], model=model).data[0].embedding
+
+@st.cache_data
+def get_wayback_content(url, timestamp):
+    wayback_url = f"http://web.archive.org/web/{timestamp}/{url}"
+    response = requests.get(wayback_url)
+    if response.status_code == 200:
+        soup = BeautifulSoup(response.text, 'html.parser')
+        # Extract text from the main content area (adjust selectors as needed)
+        main_content = soup.find('main') or soup.find('body')
+        if main_content:
+            return ' '.join(p.get_text() for p in main_content.find_all('p'))
+    return None
+
+@st.cache_data
+def parse_date(date_string):
+    """Parse date string in various formats."""
+    formats = ["%Y-%m-%d", "%d-%m-%Y", "%m-%d-%Y", "%Y/%m/%d", "%d/%m/%Y", "%m/%d/%Y", "%Y%m%d"]
+    for fmt in formats:
+        try:
+            return datetime.strptime(date_string, fmt)
+        except ValueError:
+            continue
+    raise ValueError(f"Unable to parse date: {date_string}")
 
 @st.cache_data
 def get_wayback_content_cached(url, timestamp):
