@@ -5,7 +5,6 @@ import numpy as np
 from sklearn.metrics.pairwise import cosine_similarity
 import nltk
 from nltk.tokenize import sent_tokenize
-from wayback import get_wayback_content, parse_date
 import time
 import requests
 from bs4 import BeautifulSoup
