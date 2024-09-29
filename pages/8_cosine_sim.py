@@ -13,7 +13,7 @@ from datetime import datetime
 # Download NLTK data
 @st.cache_resource
 def download_nltk_data():
-    nltk.download()
+    nltk.download('punkt')
 
 openai_api_key = st.secrets['openai']['openai_api_key']
 
