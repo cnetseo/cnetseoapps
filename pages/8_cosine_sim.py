@@ -9,6 +9,8 @@ import time
 import requests
 from bs4 import BeautifulSoup
 from datetime import datetime
+import pandas as pd
+import io
 
 # Download NLTK data
 @st.cache_resource
@@ -34,7 +36,6 @@ def get_wayback_content(url, timestamp):
     response = requests.get(wayback_url)
     if response.status_code == 200:
         soup = BeautifulSoup(response.text, 'html.parser')
-        # Extract text from the main content area (adjust selectors as needed)
         main_content = soup.find('main') or soup.find('body')
         if main_content:
             return ' '.join(p.get_text() for p in main_content.find_all('p'))
@@ -42,7 +43,6 @@ def get_wayback_content(url, timestamp):
 
 @st.cache_data
 def parse_date(date_string):
-    """Parse date string in various formats."""
     formats = ["%Y-%m-%d", "%d-%m-%Y", "%m-%d-%Y", "%Y/%m/%d", "%d/%m/%Y", "%m/%d/%Y", "%Y%m%d"]
     for fmt in formats:
         try:
@@ -56,24 +56,20 @@ def get_wayback_content_cached(url, timestamp):
     return get_wayback_content(url, timestamp)
 
 def calculate_change_score(embeddings_a, embeddings_b):
-    # Calculate the average embedding for each set of sentences
     avg_embedding_a = np.mean(embeddings_a, axis=0)
+    print(avg_embedding_a)
     avg_embedding_b = np.mean(embeddings_b, axis=0)
-    
-    # Calculate cosine similarity between the average embeddings
+    print(avg_embedding_b)
     similarity = cosine_similarity([avg_embedding_a], [avg_embedding_b])[0][0]
     print(similarity)
-    
-    # Convert similarity to change score (0 similarity -> 100 score, 1 similarity -> 0 score)
     change_score = round((1 - similarity) * 100, 2)
-    
     return change_score
 
 def detect_content_changes(content_a, content_b, similarity_threshold=0.8, progress_bar=None):
     sentences_a = sent_tokenize(content_a)
     sentences_b = sent_tokenize(content_b)
 
-    total_sentences = len(sentences_a) + len(sentences_b)
+    total_sentences = len(sentences_a) + len(sentences_b) 
     processed_sentences = 0
 
     embeddings_a = []
@@ -92,95 +88,104 @@ def detect_content_changes(content_a, content_b, similarity_threshold=0.8, progr
 
     embeddings_a_np = np.array(embeddings_a)
     embeddings_b_np = np.array(embeddings_b)
-
-    similarity_matrix = cosine_similarity(embeddings_b_np, embeddings_a_np)
-
-    added_content = []
-    for i, row in enumerate(similarity_matrix):
-        max_similarity = np.max(row)
-        if max_similarity < similarity_threshold:
-            added_content.append(sentences_b[i])
-
-    removed_content = []
-    for i, col in enumerate(similarity_matrix.T):
-        max_similarity = np.max(col)
-        if max_similarity < similarity_threshold:
-            removed_content.append(sentences_a[i])
-
-    # Calculate change score using the sentence embeddings
     change_score = calculate_change_score(embeddings_a_np, embeddings_b_np)
+    
+    return change_score
 
-    return added_content, removed_content, change_score
-
-def compare_wayback_content(url, date1_str, date2_str, similarity_threshold=0.8):
-    date1 = parse_date(date1_str)
-    date2 = parse_date(date2_str)
-
-    timestamp1 = date1.strftime("%Y%m%d")
-    timestamp2 = date2.strftime("%Y%m%d")
-
-    progress_text = "Operation in progress. Please wait."
-    my_bar = st.progress(0, text=progress_text)
-
+def process_url(url, date1, date2, progress_bar=None):
+    """Process a single URL and return its change score."""
     try:
-        with st.spinner("Retrieving content for the first date..."):
-            content_a = get_wayback_content_cached(url, timestamp1)
+        timestamp1 = date1.strftime("%Y%m%d")
+        timestamp2 = date2.strftime("%Y%m%d")
+        
+        content_a = get_wayback_content_cached(url, timestamp1)
         time.sleep(1)  # Be nice to the Wayback Machine API
-        with st.spinner("Retrieving content for the second date..."):
-            content_b = get_wayback_content_cached(url, timestamp2)
-
+        content_b = get_wayback_content_cached(url, timestamp2)
+        
         if content_a is None or content_b is None:
-            return "Failed to retrieve content for one or both dates.", None, None, None
-
-        with st.spinner("Analyzing content differences..."):
-            added, removed, change_score = detect_content_changes(content_a, content_b, similarity_threshold, my_bar)
-
+            return None
+            
+        change_score = detect_content_changes(content_a, content_b, progress_bar=progress_bar)
+        return change_score
+        
     except Exception as e:
-        st.error(f"An error occurred: {str(e)}")
-        return None, None, None, None
-    finally:
-        my_bar.empty()
-
-    return f"Changes between {date1.date()} and {date2.date()} for {url}", added, removed, change_score
+        st.error(f"Error processing {url}: {str(e)}")
+        return None
 
 def main():
     st.title("Wayback Machine Content Comparison")
-
-    url = st.text_input("Enter URL to compare:", "https://www.example.com")
+    
+    # Add file upload widget
+    uploaded_file = st.file_uploader("Upload CSV file with URLs (single column with header 'url')", type=['csv'])
+    
     col1, col2 = st.columns(2)
     with col1:
         date1 = st.date_input("Select first date:")
     with col2:
         date2 = st.date_input("Select second date:")
-
-    similarity_threshold = st.slider("Similarity Threshold", 0.0, 1.0, 0.8, 0.01)
-
+    
+    # Single URL input remains as alternative
+    url_input = st.text_input("Or enter a single URL:", "")
+    
     if st.button("Compare Content"):
-        download_nltk_data()  # Download NLTK data only when needed
-        result, added, removed, change_score = compare_wayback_content(url, date1.strftime("%Y-%m-%d"), date2.strftime("%Y-%m-%d"), similarity_threshold)
+        download_nltk_data()
         
-        if result:
-            st.write(result)
+        if uploaded_file is not None:
+            # Process CSV file
+            df = pd.read_csv(uploaded_file)
             
-            # Display the change score
-            st.subheader(f"Overall Change Score: {change_score}")
-            st.write(f"0 means no change, 1 means completely different.")
+            if 'url' not in df.columns:
+                st.error("CSV must contain a column named 'url'")
+                return
+                
+            results = []
+            progress_text = "Processing URLs..."
+            my_bar = st.progress(0, text=progress_text)
             
-            if added:
-                st.subheader("Added or Significantly Changed Content:")
-                for i, sentence in enumerate(added, 1):
-                    st.write(f"{i}. {sentence}")
+            for index, row in df.iterrows():
+                url = row['url']
+                st.write(f"Processing {url}...")
+                change_score = process_url(url, date1, date2, my_bar)
+                
+                results.append({
+                    'url': url,
+                    'date1': date1.strftime("%Y-%m-%d"),
+                    'date2': date2.strftime("%Y-%m-%d"),
+                    'change_score': change_score
+                })
+                
+                my_bar.progress((index + 1) / len(df))
+            
+            # Create results DataFrame and download button
+            results_df = pd.DataFrame(results)
+            
+            # Create download button
+            csv = results_df.to_csv(index=False)
+            st.download_button(
+                label="Download Results CSV",
+                data=csv,
+                file_name="wayback_comparison_results.csv",
+                mime="text/csv"
+            )
+            
+            # Display results in the app
+            st.subheader("Results:")
+            st.dataframe(results_df)
+            
+        elif url_input:
+            # Process single URL
+            st.write(f"Processing single URL: {url_input}")
+            progress_bar = st.progress(0)
+            change_score = process_url(url_input, date1, date2, progress_bar)
+            
+            if change_score is not None:
+                st.subheader(f"Change Score: {change_score}")
+                st.write("0 means no change, 100 means completely different.")
             else:
-                st.write("No significant additions detected.")
-            
-            if removed:
-                st.subheader("Removed Content:")
-                for i, sentence in enumerate(removed, 1):
-                    st.write(f"{i}. {sentence}")
-            else:
-                st.write("No significant removals detected.")
+                st.error("Failed to process URL. Please check the URL and dates.")
+                
         else:
-            st.error("Failed to compare content. Please try again.")
+            st.warning("Please either upload a CSV file or enter a URL.")
 
 if __name__ == "__main__":
     main()
