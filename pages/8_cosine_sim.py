@@ -58,6 +58,7 @@ def calculate_change_score(embeddings_a, embeddings_b):
     avg_embedding_a = np.mean(embeddings_a, axis=0)
     avg_embedding_b = np.mean(embeddings_b, axis=0)
     similarity = cosine_similarity([avg_embedding_a], [avg_embedding_b])[0][0]
+    print(similarity)
     change_score = round((1 - similarity) * 100, 2)
     return change_score
 
@@ -103,8 +104,10 @@ def detect_content_changes(content_a, content_b, similarity_threshold=0.8, progr
 
     return added_content, removed_content, change_score
 
-def process_single_url(url, date1, date2, similarity_threshold=0.8):
-    """Process a single URL with detailed change analysis"""
+def compare_wayback_content(url, date1_str, date2_str, similarity_threshold=0.8):
+    date1 = parse_date(date1_str)
+    date2 = parse_date(date2_str)
+
     timestamp1 = date1.strftime("%Y%m%d")
     timestamp2 = date2.strftime("%Y%m%d")
 
@@ -132,43 +135,29 @@ def process_single_url(url, date1, date2, similarity_threshold=0.8):
 
     return f"Changes between {date1.date()} and {date2.date()} for {url}", added, removed, change_score
 
-def process_bulk_urls(urls, date1, date2, progress_bar=None):
+def process_bulk_urls(df, date1, date2, my_bar=None):
     """Process multiple URLs for bulk analysis"""
     results = []
     
-    for index, url in enumerate(urls):
+    for index, row in df.iterrows():
+        url = row['url']
         st.write(f"Processing {url}...")
-        try:
-            timestamp1 = date1.strftime("%Y%m%d")
-            timestamp2 = date2.strftime("%Y%m%d")
-            
-            content_a = get_wayback_content_cached(url, timestamp1)
-            time.sleep(1)  # Be nice to the Wayback Machine API
-            content_b = get_wayback_content_cached(url, timestamp2)
-            
-            if content_a is None or content_b is None:
-                change_score = None
-            else:
-                _, _, change_score = detect_content_changes(content_a, content_b)
-                
-            results.append({
-                'url': url,
-                'date1': date1.strftime("%Y-%m-%d"),
-                'date2': date2.strftime("%Y-%m-%d"),
-                'change_score': change_score
-            })
-            
-            if progress_bar:
-                progress_bar.progress((index + 1) / len(urls))
-                
-        except Exception as e:
-            st.error(f"Error processing {url}: {str(e)}")
-            results.append({
-                'url': url,
-                'date1': date1.strftime("%Y-%m-%d"),
-                'date2': date2.strftime("%Y-%m-%d"),
-                'change_score': None
-            })
+        
+        result, _, _, change_score = compare_wayback_content(
+            url, 
+            date1.strftime("%Y-%m-%d"), 
+            date2.strftime("%Y-%m-%d")
+        )
+        
+        results.append({
+            'url': url,
+            'date1': date1.strftime("%Y-%m-%d"),
+            'date2': date2.strftime("%Y-%m-%d"),
+            'change_score': change_score if change_score is not None else None
+        })
+        
+        if my_bar is not None:
+            my_bar.progress((index + 1) / len(df))
     
     return results
 
@@ -185,7 +174,7 @@ def main():
         date2 = st.date_input("Select second date:")
 
     # Single URL input
-    url_input = st.text_input("Or enter a single URL:", "")
+    url = st.text_input("Or enter a single URL:", "https://www.example.com")
     
     similarity_threshold = st.slider("Similarity Threshold", 0.0, 1.0, 0.8, 0.01)
 
@@ -203,7 +192,7 @@ def main():
             progress_text = "Processing URLs..."
             my_bar = st.progress(0, text=progress_text)
             
-            results = process_bulk_urls(df['url'].tolist(), date1, date2, my_bar)
+            results = process_bulk_urls(df, date1, date2, my_bar)
             
             # Create results DataFrame and download button
             results_df = pd.DataFrame(results)
@@ -221,10 +210,13 @@ def main():
             st.subheader("Results:")
             st.dataframe(results_df)
             
-        elif url_input:
-            # Process single URL with detailed analysis
-            result, added, removed, change_score = process_single_url(
-                url_input, date1, date2, similarity_threshold
+        elif url:
+            # Use the original compare_wayback_content function for single URL
+            result, added, removed, change_score = compare_wayback_content(
+                url, 
+                date1.strftime("%Y-%m-%d"), 
+                date2.strftime("%Y-%m-%d"), 
+                similarity_threshold
             )
             
             if result:
