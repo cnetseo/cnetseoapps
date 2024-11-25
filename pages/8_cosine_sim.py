@@ -14,7 +14,13 @@ import pandas as pd
 # Download NLTK data
 @st.cache_resource
 def download_nltk_data():
-    nltk.download('punkt')
+    try:
+        nltk.download('punkt', quiet=True)
+    except Exception as e:
+        st.error(f"Failed to download NLTK data: {str(e)}")
+
+# Call the download function at startup
+download_nltk_data()
 
 openai_api_key = st.secrets['openai']['openai_api_key']
 
