@@ -86,6 +86,8 @@ def getSERPInfo(keyword,exclude_domain):
         print("error. Code: %d Message: %s" % (response_data["status_code"], response_data["status_message"]))
     return data_list
 
+
+
 def main():
     st.set_page_config(page_title="Refresh Script", page_icon="📈")
     st.markdown("Refresh Script")
