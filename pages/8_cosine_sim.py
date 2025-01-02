@@ -11,6 +11,8 @@ import requests
 from bs4 import BeautifulSoup
 from datetime import datetime
 import pandas as pd
+from concurrent.futures import ThreadPoolExecutor
+import math
 
 # Download NLTK data
 @st.cache_resource
@@ -145,8 +147,9 @@ def compare_wayback_content(url, date1_str, date2_str, similarity_threshold=0.8)
 def process_bulk_urls(df, date1, date2, my_bar=None):
     """Process multiple URLs for bulk analysis"""
     results = []
+    total = len(df)
     
-    for url in df.iloc[:, 0]:  # Get first column regardless of name
+    for i, url in enumerate(df.iloc[:, 0]):  # Get first column regardless of name
         st.write(f"Processing {url}...")
         
         result, _, _, change_score = compare_wayback_content(
@@ -163,7 +166,7 @@ def process_bulk_urls(df, date1, date2, my_bar=None):
         })
         
         if my_bar is not None:
-            my_bar.progress((index + 1) / len(df))
+            my_bar.progress((i + 1) / total)
     
     return results
 
