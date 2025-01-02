@@ -1,3 +1,4 @@
+from operator import index
 import streamlit as st
 import openai
 from openai import OpenAI
@@ -145,8 +146,7 @@ def process_bulk_urls(df, date1, date2, my_bar=None):
     """Process multiple URLs for bulk analysis"""
     results = []
     
-    for index, row in df.iterrows():
-        url = row['url']
+    for url in df.iloc[:, 0]:  # Get first column regardless of name
         st.write(f"Processing {url}...")
         
         result, _, _, change_score = compare_wayback_content(
@@ -188,13 +188,7 @@ def main():
         download_nltk_data()
         
         if uploaded_file is not None:
-            # Process CSV file
             df = pd.read_csv(uploaded_file)
-            
-            if 'url' not in df.columns:
-                st.error("CSV must contain a column named 'url'")
-                return
-                
             progress_text = "Processing URLs..."
             my_bar = st.progress(0, text=progress_text)
             

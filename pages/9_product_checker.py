@@ -66,16 +66,11 @@ def get_wayback_content_with_headers(url: str, timestamp: str, selector: str) ->
         return None
 
 def read_urls_from_csv(csv_file: str) -> List[str]:
-    """Read URLs from a CSV file."""
+    """Read URLs from first column of a CSV file."""
     logger.info(f"Reading URLs from CSV file: {csv_file}")
-    urls = []
     try:
-        with open(csv_file, 'r') as file:
-            reader = csv.reader(file)
-            next(reader, None)  # Skip header if present
-            for row in reader:
-                if row:  # Check if row is not empty
-                    urls.append(row[0])
+        df = pd.read_csv(csv_file)
+        urls = df.iloc[:, 0].tolist()  # Get all values from first column
         logger.info(f"Successfully read {len(urls)} URLs from CSV")
         return urls
     except Exception as e:
