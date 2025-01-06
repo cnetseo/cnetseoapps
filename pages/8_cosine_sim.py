@@ -39,16 +39,22 @@ def get_embedding(text, model="text-embedding-3-small"):
     return client.embeddings.create(input=[text], model=model).data[0].embedding
 
 @st.cache_data
-def get_wayback_content(url, timestamp):
-    wayback_url = f"http://web.archive.org/web/{timestamp}/{url}"
-    response = requests.get(wayback_url)
-    if response.status_code == 200:
-        soup = BeautifulSoup(response.text, 'html.parser')
-        main_content = soup.find('main') or soup.find('body')
-        if main_content:
-            return ' '.join(p.get_text() for p in main_content.find_all('p'))
+def get_wayback_content(url, timestamp, max_retries=3, timeout=30):
+    for attempt in range(max_retries):
+        try:
+            wayback_url = f"http://web.archive.org/web/{timestamp}/{url}"
+            response = requests.get(wayback_url, timeout=timeout)
+            if response.status_code == 200:
+                soup = BeautifulSoup(response.text, 'html.parser')
+                main_content = soup.find('main') or soup.find('body')
+                time.sleep(1 + attempt)  # Exponential backoff
+                if main_content:
+                    return ' '.join(p.get_text() for p in main_content.find_all('p'))
+        except requests.exceptions.Timeout:
+            if attempt == max_retries - 1:
+                raise
+            time.sleep(2 ** attempt)  # Exponential backoff
     return None
-
 @st.cache_data
 def parse_date(date_string):
     formats = ["%Y-%m-%d", "%d-%m-%Y", "%m-%d-%Y", "%Y/%m/%d", "%d/%m/%Y", "%m/%d/%Y", "%Y%m%d"]
@@ -126,7 +132,7 @@ def compare_wayback_content(url, date1_str, date2_str, similarity_threshold=0.8)
     try:
         with st.spinner("Retrieving content for the first date..."):
             content_a = get_wayback_content_cached(url, timestamp1)
-        time.sleep(1)  # Be nice to the Wayback Machine API
+        time.sleep(5)  # Be nice to the Wayback Machine API
         with st.spinner("Retrieving content for the second date..."):
             content_b = get_wayback_content_cached(url, timestamp2)
 
@@ -144,15 +150,42 @@ def compare_wayback_content(url, date1_str, date2_str, similarity_threshold=0.8)
 
     return f"Changes between {date1.date()} and {date2.date()} for {url}", added, removed, change_score
 
+def compare_bulk_content(url, date1_str, date2_str):
+    """Simplified comparison for bulk processing - compares whole pages instead of sentences"""
+    try:
+        date1 = parse_date(date1_str)
+        date2 = parse_date(date2_str)
+
+        timestamp1 = date1.strftime("%Y%m%d")
+        timestamp2 = date2.strftime("%Y%m%d")
+
+        content_a = get_wayback_content(url, timestamp1)
+        embedding_a = get_embedding(content_a)
+        time.sleep(3)  # Be nice to the Wayback Machine API
+        content_b = get_wayback_content(url, timestamp2)
+        embedding_b = get_embedding(content_b)
+
+        if content_a is None or content_b is None:
+            st.write(f"Failed to retrieve content for {url}")
+            return None
+
+        # Calculate similarity
+        similarity = cosine_similarity([embedding_a], [embedding_b])[0][0]
+        change_score = round((1 - similarity) * 100, 2)
+        time.sleep(1)
+        return change_score
+    except Exception as e:
+        st.write(f"Error processing {url}: {str(e)}")
+        return None
+
 def process_bulk_urls(df, date1, date2, my_bar=None):
-    """Process multiple URLs for bulk analysis"""
     results = []
     total = len(df)
     
-    for i, url in enumerate(df.iloc[:, 0]):  # Get first column regardless of name
+    for i, url in enumerate(df.iloc[:, 0]):
         st.write(f"Processing {url}...")
         
-        result, _, _, change_score = compare_wayback_content(
+        change_score = compare_bulk_content(
             url, 
             date1.strftime("%Y-%m-%d"), 
             date2.strftime("%Y-%m-%d")
@@ -167,14 +200,24 @@ def process_bulk_urls(df, date1, date2, my_bar=None):
         
         if my_bar is not None:
             my_bar.progress((i + 1) / total)
+            
+        # Rate limiting: Wait if not last URL
+        if i < total - 1:
+            time.sleep(8.6)  # ~7 URLs per minute (60/7 seconds)
     
     return results
+
+def process_pasted_urls(urls_text):
+    """Process pasted URLs from text area"""
+    urls = [url.strip() for url in urls_text.split('\n') if url.strip()]
+    df = pd.DataFrame({'url': urls})
+    return df
 
 def main():
     st.title("Wayback Machine Content Comparison")
     
-    # Add file upload widget
-    uploaded_file = st.file_uploader("Upload CSV file with URLs (single column with header 'url')", type=['csv'])
+    # Add tabs for different input methods
+    input_method = st.radio("Choose input method:", ["Single URL", "Bulk Upload", "Paste URLs"])
     
     col1, col2 = st.columns(2)
     with col1:
@@ -182,39 +225,23 @@ def main():
     with col2:
         date2 = st.date_input("Select second date:")
 
-    # Single URL input
-    url = st.text_input("Or enter a single URL:", "https://www.example.com")
-    
-    similarity_threshold = st.slider("Similarity Threshold", 0.0, 1.0, 0.8, 0.01)
+    if input_method == "Single URL":
+        url = st.text_input("Enter a URL:", "https://www.example.com")
+        similarity_threshold = st.slider("Similarity Threshold", 0.0, 1.0, 0.8, 0.01)
+    elif input_method == "Bulk Upload":
+        uploaded_file = st.file_uploader("Upload CSV file with URLs (single column with header 'url')", type=['csv'])
+    else:  # Paste URLs
+        urls_text = st.text_area("Paste URLs (one per line):")
 
     if st.button("Compare Content"):
         download_nltk_data()
         
-        if uploaded_file is not None:
+        if input_method == "Bulk Upload" and uploaded_file is not None:
             df = pd.read_csv(uploaded_file)
-            progress_text = "Processing URLs..."
-            my_bar = st.progress(0, text=progress_text)
-            
-            results = process_bulk_urls(df, date1, date2, my_bar)
-            
-            # Create results DataFrame and download button
-            results_df = pd.DataFrame(results)
-            
-            # Create download button
-            csv = results_df.to_csv(index=False)
-            st.download_button(
-                label="Download Results CSV",
-                data=csv,
-                file_name="wayback_comparison_results.csv",
-                mime="text/csv"
-            )
-            
-            # Display results in the app
-            st.subheader("Results:")
-            st.dataframe(results_df)
-            
-        elif url:
-            # Use the original compare_wayback_content function for single URL
+        elif input_method == "Paste URLs" and urls_text:
+            df = process_pasted_urls(urls_text)
+        elif input_method == "Single URL" and url:
+            # Process single URL
             result, added, removed, change_score = compare_wayback_content(
                 url, 
                 date1.strftime("%Y-%m-%d"), 
@@ -224,8 +251,6 @@ def main():
             
             if result:
                 st.write(result)
-                
-                # Display the change score
                 st.subheader(f"Overall Change Score: {change_score}")
                 st.write(f"0 means no change, 100 means completely different.")
                 
@@ -244,9 +269,28 @@ def main():
                     st.write("No significant removals detected.")
             else:
                 st.error("Failed to compare content. Please try again.")
-                
+            return
+
+        # Process bulk URLs (either from CSV or pasted text)
+        if 'df' in locals():
+            progress_text = "Processing URLs..."
+            my_bar = st.progress(0, text=progress_text)
+            
+            results = process_bulk_urls(df, date1, date2, my_bar)
+            results_df = pd.DataFrame(results)
+            
+            csv = results_df.to_csv(index=False)
+            st.download_button(
+                label="Download Results CSV",
+                data=csv,
+                file_name="wayback_comparison_results.csv",
+                mime="text/csv"
+            )
+            
+            st.subheader("Results:")
+            st.dataframe(results_df)
         else:
-            st.warning("Please either upload a CSV file or enter a URL.")
+            st.warning("Please provide input URLs.")
 
 if __name__ == "__main__":
     main()
