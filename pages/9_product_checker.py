@@ -7,10 +7,30 @@ from typing import List, Dict, Tuple, Optional
 import csv
 import logging
 import time
+from ratelimit import limits, sleep_and_retry
+from requests.adapters import HTTPAdapter
+from urllib3.util import Retry
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
+
+# Configure retry strategy
+retry_strategy = Retry(
+    total=3,
+    backoff_factor=1,
+    status_forcelist=[429, 500, 502, 503, 504],
+)
+adapter = HTTPAdapter(max_retries=retry_strategy)
+http = requests.Session()
+http.mount("http://", adapter)
+http.mount("https://", adapter)
+
+# Rate limiting decorator - 15 requests per minute
+@sleep_and_retry
+@limits(calls=15, period=60)
+def rate_limited_request(url: str) -> requests.Response:
+    return http.get(url)
 
 @st.cache_data
 def parse_date(date_string: str) -> datetime:
@@ -24,12 +44,12 @@ def parse_date(date_string: str) -> datetime:
     raise ValueError(f"Unable to parse date: {date_string}")
 
 def get_wayback_content_with_headers(url: str, timestamp: str, selector: str) -> Optional[List[str]]:
-    """Fetch content from Wayback Machine and extract elements matching the given selector."""
+    """Fetch content from Wayback Machine with rate limiting and retries."""
     wayback_url = f"http://web.archive.org/web/{timestamp}/{url}"
     logger.info(f"Fetching content from: {wayback_url}")
     
     try:
-        response = requests.get(wayback_url)
+        response = rate_limited_request(wayback_url)
         logger.info(f"Response status code: {response.status_code}")
         
         if response.status_code == 200:
@@ -43,9 +63,7 @@ def get_wayback_content_with_headers(url: str, timestamp: str, selector: str) ->
         logger.info(f"Found {len(headers)} headers with selector '{selector}'")
         
         if headers:
-            # Get text content and strip whitespace
             header_texts = [header.get_text(strip=True) for header in headers]
-            # Log first few headers for verification
             for i, text in enumerate(header_texts[:3]):
                 logger.info(f"Sample header {i + 1}: {text}")
             return header_texts
@@ -65,54 +83,41 @@ def get_wayback_content_with_headers(url: str, timestamp: str, selector: str) ->
         logger.error(f"Unexpected error processing {wayback_url}: {str(e)}")
         return None
 
-def read_urls_from_csv(csv_file: str) -> List[str]:
-    """Read URLs from first column of a CSV file."""
-    logger.info(f"Reading URLs from CSV file: {csv_file}")
-    try:
-        df = pd.read_csv(csv_file)
-        urls = df.iloc[:, 0].tolist()  # Get all values from first column
-        logger.info(f"Successfully read {len(urls)} URLs from CSV")
-        return urls
-    except Exception as e:
-        logger.error(f"Error reading CSV file: {str(e)}")
-        raise
+def process_urls(urls_input: str) -> List[str]:
+    """Process URLs from text input, handling various formats."""
+    urls = []
+    for line in urls_input.split('\n'):
+        # Clean and validate each URL
+        url = line.strip()
+        if url and (url.startswith('http://') or url.startswith('https://')):
+            urls.append(url)
+    return urls
 
 def generate_comparison_csv(urls: List[str], 
                           old_date: str, 
                           new_date: str,
                           old_selector: str,
                           new_selector: str) -> Tuple[str, pd.DataFrame]:
-    """
-    Compare content between dates and generate CSV output.
-    Returns path to generated CSV file and DataFrame.
-    """
+    """Compare content between dates with rate limiting."""
     logger.info(f"Starting comparison between dates: {old_date} and {new_date}")
     
     old_timestamp = parse_date(old_date).strftime("%Y%m%d")
     new_timestamp = parse_date(new_date).strftime("%Y%m%d")
-    
-    # Prepare CSV output
     output_data = []
     
     for url in urls:
         logger.info(f"\nProcessing URL: {url}")
         
-        # Get old version content
         old_headers = get_wayback_content_with_headers(url, old_timestamp, old_selector)
         old_headers = old_headers if old_headers is not None else []
         old_set = set(old_headers)
         logger.info(f"Old version items count: {len(old_headers)}")
         
-        # Sleep for 2 seconds between requests
-        time.sleep(7.5)
-        
-        # Get new version content
         new_headers = get_wayback_content_with_headers(url, new_timestamp, new_selector)
         new_headers = new_headers if new_headers is not None else []
         new_set = set(new_headers)
         logger.info(f"New version items count: {len(new_headers)}")
         
-        # Calculate changes
         added = list(new_set - old_set)
         removed = list(old_set - new_set)
         unchanged = list(old_set & new_set)
@@ -120,7 +125,6 @@ def generate_comparison_csv(urls: List[str],
         
         logger.info(f"Changes found - Added: {len(added)}, Removed: {len(removed)}, Unchanged: {len(unchanged)}")
         
-        # Add to output data
         output_data.append({
             'URL': url,
             f'New Date ({new_date})': ' | '.join(new_headers),
@@ -133,11 +137,7 @@ def generate_comparison_csv(urls: List[str],
             'Old Count': len(old_headers),
             'Count Difference': len(new_headers) - len(old_headers)
         })
-        
-        # Sleep for 2 seconds before next URL
-        time.sleep(7.5)
     
-    # Create DataFrame and save to CSV
     df = pd.DataFrame(output_data)
     output_file = 'comparison_results.csv'
     df.to_csv(output_file, index=False)
@@ -146,7 +146,6 @@ def generate_comparison_csv(urls: List[str],
 def main():
     st.title("Wayback Machine Content Comparison")
     
-    # Add logging display in Streamlit
     if 'log_messages' not in st.session_state:
         st.session_state.log_messages = []
 
@@ -159,8 +158,8 @@ def main():
     streamlit_handler.setFormatter(logging.Formatter('%(levelname)s: %(message)s'))
     logger.addHandler(streamlit_handler)
     
-    # File uploader for CSV
-    csv_file = st.file_uploader("Upload CSV file with URLs", type=['csv'])
+    # URL input area
+    urls_text = st.text_area("Enter URLs (one per line):", height=150)
     
     # Configure dates and selectors
     st.write("Configure dates and selectors:")
@@ -176,26 +175,22 @@ def main():
         new_date = st.text_input("Date (YYYY-MM-DD)", "2024-12-01")
         new_selector = st.text_input("CSS Selector", "h4.c-bestListListicle_hed")
     
-    if st.button("Compare and Generate CSV") and csv_file and old_date and new_date:
+    if st.button("Compare and Generate CSV"):
         try:
             logger.info("Starting new comparison run...")
-            logger.info(f"Using selectors - Old: {old_selector}, New: {new_selector}")
+            urls = process_urls(urls_text)
             
-            # Save uploaded file temporarily
-            with open("temp_urls.csv", "wb") as f:
-                f.write(csv_file.getvalue())
-            
-            # Read URLs and generate comparison
-            urls = read_urls_from_csv("temp_urls.csv")
+            if not urls:
+                st.error("No valid URLs found. Please enter URLs starting with http:// or https://")
+                return
+                
             output_file, df = generate_comparison_csv(
                 urls, old_date, new_date, old_selector, new_selector
             )
             
-            # Display results
             st.subheader("Comparison Results")
             st.dataframe(df)
             
-            # Provide download link
             with open(output_file, 'rb') as f:
                 st.download_button(
                     label="Download CSV Results",
@@ -208,7 +203,6 @@ def main():
             logger.error(f"Error processing data: {str(e)}")
             st.error(f"Error processing data: {str(e)}")
         
-        # Display logs
         st.subheader("Debug Logs")
         for log in st.session_state.log_messages:
             st.text(log)
