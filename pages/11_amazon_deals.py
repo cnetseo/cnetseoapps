@@ -1,5 +1,31 @@
 import streamlit as st
 import pandas as pd
+
+def ensure_supabase():
+    try:
+        import supabase
+        return True
+    except ImportError:
+        import subprocess
+        import sys
+        
+        print("Installing Supabase dependencies...")
+        subprocess.check_call([
+            sys.executable, "-m", "pip", "install", 
+            "supabase", "websockets==12.0", "--quiet"
+        ])
+        
+        try:
+            import supabase
+            return True
+        except ImportError:
+            st.error("Failed to install Supabase. Please install it manually.")
+            return False
+
+# Call this at the start of your script
+if not ensure_supabase():
+    st.stop() 
+    
 from supabase import create_client
 
 # Initialize Supabase client
