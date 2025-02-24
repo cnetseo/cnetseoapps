@@ -74,7 +74,7 @@ python-dateutil==2.9.0
 pytz==2024.1
 PyYAML==6.0.1
 ratelimit==2.2.1
-realtime==2.4.0
+realtime
 referencing==0.33.0
 regex==2023.12.25
 requests==2.31.0
