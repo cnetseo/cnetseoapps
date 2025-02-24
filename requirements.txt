@@ -19,7 +19,7 @@ GitPython==3.1.44
 google-genai==0.2.2
 google-search-results==2.4.2
 h11==0.14.0
-httpcore==0.18.1
+httpcore
 httpx==0.25.0
 idna==3.10
 importlib-metadata==8.6.1
