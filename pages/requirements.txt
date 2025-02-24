@@ -107,7 +107,7 @@ update-checker==0.18.0
 urllib3==2.2.1
 validators==0.22.0
 websocket-client
-websockets
+websockets==12.0
 yarl==1.18.3
 zipp==3.17.0
 zope.interface==6.2
