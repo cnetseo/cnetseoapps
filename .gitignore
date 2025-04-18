@@ -1,3 +1,4 @@
 .env
 pages/.streamlit/
-
+code_comparison/
+embeddings/

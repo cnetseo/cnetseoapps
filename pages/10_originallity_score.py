@@ -97,7 +97,7 @@ def verify_information_gain(your_chunk, competitor_chunk, keyword, use_google=Fa
             print("Starting Gemini analysis...")
             client = get_google_client()
             response = client.models.generate_content(
-                model="gemini-2.5-pro-preview-03-25",
+                model="gemini-2.0-flash",
                 contents=prompt,
                 config={
                     'response_mime_type': 'application/json',
