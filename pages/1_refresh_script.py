@@ -1,10 +1,8 @@
 import streamlit as st
 import pandas as pd
-import json
 from datetime import datetime, timezone
-import requests, zipfile, io
+import requests
 import base64
-import time
 
 
 api_key = st.secrets["dataforseoapikey"]["api_key"]

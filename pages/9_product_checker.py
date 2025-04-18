@@ -4,9 +4,7 @@ from bs4 import BeautifulSoup
 from datetime import datetime
 import pandas as pd
 from typing import List, Dict, Tuple, Optional
-import csv
 import logging
-import time
 from ratelimit import limits, sleep_and_retry
 from requests.adapters import HTTPAdapter
 from urllib3.util import Retry
