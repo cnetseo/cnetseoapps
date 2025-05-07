@@ -15,7 +15,7 @@ from bs4 import BeautifulSoup
 import concurrent.futures
 import threading # For potential future use with locks if needed
 
-API_KEY = 'AIzaSyBhq9dqHAxX9Idn4FFVC_q1JnpW5BvcSGE'
+
 
 # --- Concurrency Configuration ---
 MAX_WORKERS = 3 # Number of parallel threads
